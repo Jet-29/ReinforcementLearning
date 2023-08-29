@@ -6,7 +6,7 @@ from gymnasium.spaces import flatdim
 from loggers import Logger
 
 import torch
-import torch.nn.functional as F
+import torch.nn.functional as func
 from gymnasium import Env
 from torch import optim
 
@@ -14,7 +14,7 @@ from network import Network
 
 
 class AgentPPO:
-    def __init__(self, env: Env, layers: list[int], save_path="models/ppo"):
+    def __init__(self, env: Env, layers: list[int], save_path="models/ppo", **hyperparameters):
         self.logger = Logger(print_order=["Average_rewards", "Average_lens"], print_every=5)
 
         self.env = env
@@ -40,6 +40,9 @@ class AgentPPO:
 
         self.covariance_tensor = torch.full(size=(self.act_dims,), fill_value=0.5)
         self.covariance_matrix = torch.diag(self.covariance_tensor)
+
+        for param, val in hyperparameters.items():
+            exec('self.' + param + ' = ' + str(val))
 
     def get_action(self, obs):
         mean = self.actor(obs)
@@ -135,7 +138,7 @@ class AgentPPO:
                 surrogate2 = torch.clamp(ratio, 1 - self.clip, 1 + self.clip) * a_k
 
                 actor_loss = (-torch.min(surrogate1, surrogate2)).mean()
-                critic_loss = F.mse_loss(v, batch_rtgs)
+                critic_loss = func.mse_loss(v, batch_rtgs)
 
                 self.actor_optim.zero_grad()
                 actor_loss.backward()
