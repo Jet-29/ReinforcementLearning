@@ -5,16 +5,14 @@ from gymnasium.spaces import flatdim
 from network import Network
 
 if __name__ == "__main__":
-    env_name = "LunarLander-v2"
+    env_name = "BipedalWalker-v3"
+    extras = "hardcore"
     model_type = "ppo"
     model_name = "ppo_actor"
     model_layers = [256, 256, 256]
-    continuous = True
+    allowed_time_steps = 2000
 
-    if continuous:
-        env = gym.make(env_name, continuous=True, render_mode="human")
-    else:
-        env = gym.make(env_name, render_mode="human")
+    env = eval(f"gym.make(env_name, {extras + '=True,' if extras else ''} render_mode='human')")
 
     obs_dims = flatdim(env.observation_space)
     act_dims = flatdim(env.action_space)
@@ -27,7 +25,7 @@ if __name__ == "__main__":
     while True:
         obs, _ = env.reset()
 
-        for _ in range(200):
+        for _ in range(allowed_time_steps):
             action = policy(obs).detach().numpy()
             obs, reward, terminated, _, _ = env.step(action)
 
